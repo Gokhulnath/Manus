@@ -1,3 +1,4 @@
 /manus-backend/.venv/*
 /manus-backend/.idea/*
 
+/manus-backend/.env
