@@ -1,10 +1,11 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from supabase import Client
 from datetime import datetime, timezone
 import uuid
 
 from models.chunk import Chunk
 from schemas.chunk import ChunkCreate, ChunkResponse, ChunkUpdate
+from schemas.document import DocumentResponse
 
 
 class ChunkService:
@@ -51,6 +52,32 @@ class ChunkService:
             return None
 
         return ChunkResponse(**result.data[0])
+
+    async def get_chunks_by_vector_ids(self, vector_ids: List[str]) -> Optional[
+        List[Tuple[ChunkResponse, DocumentResponse]]]:
+        """Get chunks and their associated documents by vector IDs."""
+
+        result = (
+            self.db.table(self.table_name)
+            .select('*, documents(*)')  # fetch all document columns
+            .in_('vector_id', vector_ids)
+            .execute()
+        )
+
+        if not result.data:
+            return None
+
+        combined_results = []
+        for row in result.data:
+            document_data = row.pop('documents', None)
+            if document_data:
+                document = DocumentResponse(**document_data)
+            else:
+                document = None
+            chunk = ChunkResponse(**row)
+            combined_results.append((chunk, document))
+
+        return combined_results
 
     async def get_chunks_by_document_id(self, document_id: str) -> List[ChunkResponse]:
         """Get all chunks for a specific document."""

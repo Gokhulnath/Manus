@@ -8,6 +8,7 @@ import tiktoken
 from dotenv import load_dotenv
 from pinecone import Pinecone, ServerlessSpec
 from openai import OpenAI
+from agent.settings import settings
 from core.database import get_supabase_client
 from schemas.chunk import ChunkCreate
 from schemas.document import DocumentCreate, DocumentUpdate
@@ -21,14 +22,14 @@ logger = logging.getLogger(__name__)
 class DocumentProcessor:
     def __init__(self):
 
-        self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-        self.pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
-        self.index_name = os.getenv('PINECONE_INDEX_NAME')
-        self.max_tokens = int(os.getenv('MAX_TOKENS_PER_CHUNK'))
-        self.overlap_token = int(os.getenv('OVERLAPPING_TOKEN'))
-        self.embedding_model = os.getenv('EMBEDDING_MODEL')
-        self.embedding_dimensions = int(os.getenv('EMBEDDING_DIMENSIONS'))
+        self.pc = Pinecone(api_key=settings.PINECONE_API_KEY)
+        self.index_name = settings.PINECONE_INDEX_NAME
+        self.max_tokens = settings.MAX_TOKENS_PER_CHUNK
+        self.overlap_token = settings.OVERLAPPING_TOKEN
+        self.embedding_model = settings.EMBEDDING_MODEL
+        self.embedding_dimensions = settings.EMBEDDING_DIMENSIONS
 
         existing_indexes = [index.name for index in self.pc.list_indexes()]
 
@@ -38,8 +39,8 @@ class DocumentProcessor:
                 dimension=self.embedding_dimensions,
                 metric="cosine",
                 spec=ServerlessSpec(
-                    cloud=os.getenv('PINECONE_CLOUD'),
-                    region=os.getenv('PINECONE_REGION')
+                    cloud=settings.PINECONE_CLOUD,
+                    region=settings.PINECONE_REGION
                 )
             )
 
