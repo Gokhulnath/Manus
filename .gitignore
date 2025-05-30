@@ -2,3 +2,10 @@
 /manus-backend/.idea/*
 
 /manus-backend/.env
+/Data Room
+/manus-backend/__pycache__
+/manus-backend/api/__pycache__
+/manus-backend/core/__pycache__
+/manus-backend/models/__pycache__
+/manus-backend/schemas/__pycache__
+/manus-backend/services/__pycache__
