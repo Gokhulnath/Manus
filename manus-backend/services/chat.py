@@ -1,6 +1,6 @@
 from typing import List, Optional
 from supabase import Client
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 from schemas.chat import ChatCreate, ChatUpdate, ChatResponse
@@ -55,7 +55,7 @@ class ChatService:
         if not existing:
             return None
 
-        update_data = {"updated_at": datetime.utcnow().isoformat()}
+        update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
 
         if chat_update.title is not None:
             update_data["title"] = chat_update.title
