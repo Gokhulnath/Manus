@@ -65,6 +65,7 @@ class AnalysingProcessor:
                     'document_name': document.filename,
                     'document_type': document.file_type,
                     'document_filepath': document.file_path,
+                    'chunk_id': chunk.id,
                     'chunk_index': chunk.chunk_index,
                     'content': chunk.content,
                     'start_char_index': chunk.start_char_index,

@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from api import health, chat
+from api import health, chat, message
 from fastapi.responses import JSONResponse
 from core.file_monitor import FileMonitor
 from core.file_processor import FileProcessor
@@ -81,6 +81,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Routes goes here
 app.include_router(health.router, tags=["Health"])
 app.include_router(chat.router, prefix="/chats", tags=["Chats"])
+app.include_router(message.router, prefix="/messages", tags=["Messages"])
 
 
 

@@ -34,10 +34,31 @@ CREATE TABLE chunks (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TYPE message_role AS ENUM ('user', 'assistant', 'system');
+
+CREATE TYPE message_task AS ENUM ('chat', 'summarize', 'analyse');
+
+CREATE TYPE message_status AS ENUM ('pending', 'completed', 'failed', 'in_progress');
+
+
+-- Messages table
+CREATE TABLE messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    chat_id UUID REFERENCES chat(id) ON DELETE CASCADE,
+    chunk_id UUID REFERENCES chunks(id) ON DELETE SET NULL,
+    role message_role NOT NULL,
+    content TEXT NOT NULL,
+    task message_task NOT NULL,
+    status message_status NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes
 CREATE INDEX idx_chat_id ON chat(id);
 CREATE INDEX idx_chunks_document_id ON chunks(document_id);
 CREATE INDEX idx_chunks_vector_id ON chunks(vector_id);
+CREATE INDEX idx_message_id ON messages(id);
 
 -- Function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -63,5 +84,11 @@ CREATE TRIGGER update_documents_updated_at
 -- Trigger for chunks table
 CREATE TRIGGER update_chunks_updated_at
     BEFORE UPDATE ON chunks
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger for messages table
+CREATE TRIGGER update_messages_updated_at
+    BEFORE UPDATE ON messages
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();

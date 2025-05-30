@@ -54,6 +54,7 @@ class ReasoningProcessor:
                 'document_name': chunk['document_name'],
                 'document_type': chunk['document_type'],
                 'document_filepath': chunk['document_filepath'],
+                'chunk_id': chunk['chunk_id'],
                 'chunk_index': chunk['chunk_index'] + 1,
                 'start_char_index': chunk['start_char_index'],
                 'end_char_index': chunk['end_char_index'],
