@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from supabase import Client
-from api.deps import get_supabase
+from core.database import get_supabase_client
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ async def root():
     return {"message": "Manus Clone is running"}
 
 @router.get("/health")
-async def health_check(db: Client = Depends(get_supabase)):
+async def health_check(db: Client = Depends(get_supabase_client)):
     try:
         # Test database connection
         db.table("chat").select("count", count="exact").execute()

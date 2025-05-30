@@ -12,6 +12,7 @@ CREATE TABLE chat (
 CREATE TABLE documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     filename TEXT NOT NULL,
+    file_path TEXT NOT NULL,
     file_type TEXT NOT NULL,
     file_hash TEXT UNIQUE NOT NULL,
     total_chunks INTEGER DEFAULT 0,

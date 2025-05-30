@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
+from core.database import get_chat_service
 from schemas.chat import ChatCreate, ChatUpdate, ChatResponse
 from services.chat import ChatService
-from api.deps import get_chat_service
+
 
 router = APIRouter()
 
