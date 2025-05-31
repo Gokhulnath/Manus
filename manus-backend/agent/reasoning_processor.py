@@ -7,7 +7,10 @@ from openai import OpenAI
 from agent.analysing_processor import AnalysingProcessor
 from agent.settings import settings
 from core.database import get_supabase_client
+from core.enums import MessageRole, MessageTask, MessageStatus
+from schemas.message import MessageCreate, MessageResponse
 from services.chunk import ChunkService
+from services.message import MessageService
 
 load_dotenv()
 
@@ -22,14 +25,16 @@ class ReasoningProcessor:
         self.embedding_model = settings.EMBEDDING_MODEL
         self.embedding_dimensions = settings.EMBEDDING_DIMENSIONS
         self.pinecone_index = self.pc.Index(self.index_name)
-
-        self.chunk_service = ChunkService(get_supabase_client())
-        self.analysing_processor = AnalysingProcessor()
         self.top_k = 5
         self.openai_model = settings.OPENAI_MODEL
 
-    async def answer_question(self, question: str) -> Dict[str, Any]:
+        self.chunk_service = ChunkService(get_supabase_client())
+        self.analysing_processor = AnalysingProcessor()
+        self.message_service = MessageService(get_supabase_client())
+
+    async def answer_question(self, message: MessageResponse) -> Dict[str, Any]:
         """Answer a question using RAG"""
+        question = message.content
         logger.info(f"Searching for relevant information for: {question}")
 
         # Search for relevant chunks
@@ -50,7 +55,7 @@ class ReasoningProcessor:
             char_range = f"characters {chunk['start_char_index']}-{chunk['end_char_index']}"
             context_parts.append(
                 f"Document: {chunk['document_name']}\nContent: {chunk['content']}\n")
-            sources.append({
+            source = {
                 'document_name': chunk['document_name'],
                 'document_type': chunk['document_type'],
                 'document_filepath': chunk['document_filepath'],
@@ -62,7 +67,18 @@ class ReasoningProcessor:
                 'similarity_score': round(chunk['similarity_score'], 4),
                 'content_preview': chunk['content'][:200] + "..." if len(chunk['content']) > 200 else chunk[
                     'content']
-            })
+            }
+            sources.append(source)
+
+            new_message = MessageCreate(
+                chat_id=message.chat_id,
+                chunk_id=chunk['chunk_id'],
+                role=MessageRole.ASSISTANT,
+                content=str(source),
+                task=MessageTask.ANALYSE,
+                status=MessageStatus.COMPLETED
+            )
+            await self.message_service.create_message(new_message)
 
         context = "\n---\n".join(context_parts)
 
@@ -76,14 +92,14 @@ class ReasoningProcessor:
         Question: {question}
         
         Please provide a comprehensive answer based on the context above. When referencing information, 
-        mention which document and chunk it comes from, along with the character position in the original document."""
+        mention which document it comes from, along with the law or law number or acts if present from the original document."""
 
         # Get answer from OpenAI
         response = self.openai_client.chat.completions.create(
             model=self.openai_model,
             messages=[
                 {"role": "system",
-                 "content": "You are a helpful Law assistant that answers questions based on provided law document context. Always cite your sources by mentioning the document name, chunk number, and character position when referencing information."},
+                 "content": "You are a helpful Law assistant that answers questions based on provided law document context. Always cite your sources by mentioning the document name when referencing information."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3

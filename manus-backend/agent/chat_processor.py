@@ -28,7 +28,7 @@ class ChatProcessor:
             asyncio.create_task(self._rename_chat(chat_id, title))
         for message in messages:
             if message.role == MessageRole.USER and message.status == MessageStatus.PENDING:
-                result = await self.processor.answer_question(question=message.content)
+                result = await self.processor.answer_question(message = message)
                 await self.message_service.update_message(message.id, MessageUpdate(status=MessageStatus.COMPLETED))
                 await self.message_service.create_message(MessageCreate(chat_id=message.chat_id,
                                                                         role=MessageRole.ASSISTANT,
