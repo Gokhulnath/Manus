@@ -3,14 +3,41 @@ import type { paths } from "@/lib/openapi-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import useSWR from "swr";
-import { fetcher } from "@/lib/api";
+import { fetcher, postData } from "@/lib/api";
+import { useEffect } from "react";
+
+type Props = {
+  chat_id: string;
+  onSelectChat: (id: string) => void;
+};
 
 type ChatResponse =
   paths["/chats/"]["get"]["responses"]["200"]["content"]["application/json"];
 
-const ChatHistory = () => {
-  const { data, error, isLoading } = useSWR("/chats/", fetcher);
+type ChatCreate =
+  paths["/chats/"]["post"]["requestBody"]["content"]["application/json"];
+
+const ChatHistory = ({ chat_id, onSelectChat }: Props) => {
+  const { data, error, isLoading, mutate } = useSWR("/chats/", fetcher);
   const chats = data as ChatResponse;
+
+  useEffect(() => {
+    mutate();
+  }, [chat_id, mutate]);
+
+  const handleNewChat = async () => {
+    const newChat: ChatCreate = {
+      title: "Untitled Chat",
+    };
+
+    try {
+      const response = await postData("/chats/", newChat);
+      onSelectChat(response.id);
+      mutate();
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
 
   if (error) return <p>Error: {error.message}</p>;
 
@@ -21,6 +48,7 @@ const ChatHistory = () => {
 
       <button
         suppressHydrationWarning
+        onClick={handleNewChat}
         className="w-full text-left px-4 py-4 rounded-lg hover:bg-gray-100 font-medium text-sm bg-transparent transition-colors flex items-center gap-2"
       >
         <span className="w-4 h-4 flex items-center justify-center">
@@ -45,7 +73,11 @@ const ChatHistory = () => {
           chats.map((chat) => (
             <button
               key={chat.id}
-              className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 font-medium text-sm bg-transparent transition-colors"
+              onClick={() => onSelectChat(chat.id)}
+              className={`w-full text-left px-4 py-2 rounded-lg font-medium text-sm transition-colors ${chat.id === chat_id
+                ? "bg-gray-100"
+                : "bg-transparent hover:bg-gray-100"
+                }`}
             >
               {chat.title || "Untitled Chat"}
             </button>

@@ -5,12 +5,16 @@ import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import useSWR from "swr";
 
+type Props = {
+    chat_id: string;
+};
+
 type MessageResponse =
     paths["/messages/chat/{chat_id}"]["get"]["responses"]["200"]["content"]["application/json"];
 
 type MessageCreate = paths["/messages/"]["post"]["requestBody"]["content"]["application/json"];
 
-const ChatPage = ({ chat_id = "f6dadbb4-ac52-48e1-973d-f8f6c6b1043b" }: { chat_id?: string }) => {
+const ChatPage = ({ chat_id }: Props) => {
     const [messages, setMessages] = useState<MessageResponse>([]);
     const chatRef = useRef<HTMLDivElement>(null);
 
@@ -39,23 +43,22 @@ const ChatPage = ({ chat_id = "f6dadbb4-ac52-48e1-973d-f8f6c6b1043b" }: { chat_i
 
     const handleSendMessage = async (text: string) => {
         const newMessage: MessageCreate = {
-            chat_id,
+            chat_id: chat_id,
             content: text,
             role: "user",
             task: "chat",
-            status: "pending"
+            status: "pending",
         };
-        await postData("/messages/", newMessage)
-            .then((response) => {
-                setMessages((prev) => [...prev, response]);
-                mutate();
-            }
-            )
-            .catch((error) => {
-                console.error("Error sending message:", error);
-            }
-            );
+
+        try {
+            const response = await postData("/messages/", newMessage);
+            setMessages((prev) => [...prev, response]);
+            mutate();
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
     };
+
 
     return (
         <main className="flex flex-col h-full w-full max-h-screen">

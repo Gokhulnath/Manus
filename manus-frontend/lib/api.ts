@@ -2,9 +2,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
 export const fetcher = (url: string) =>
     fetch(`${API_BASE}${url}`).then((res) => {
-        if (!res.ok) {
-            throw new Error('An error occurred while fetching the data.');
-        }
         return res.json();
     });
 
