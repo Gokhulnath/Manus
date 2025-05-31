@@ -134,7 +134,7 @@ const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
                             }
                         }}
                     >
-                        <span>Analysed <strong>{docName}</strong></span>
+                        <span>Analysed a chunk from <strong>{docName}</strong></span>
                         <span className="text-gray-700 text-sm">➔</span>
                     </div>
                 );
