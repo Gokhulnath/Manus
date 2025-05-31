@@ -18,7 +18,16 @@ type ChatCreate =
   paths["/chats/"]["post"]["requestBody"]["content"]["application/json"];
 
 const ChatHistory = ({ chat_id, onSelectChat }: Props) => {
-  const { data, error, isLoading, mutate } = useSWR("/chats/", fetcher);
+  const { data, error, isLoading, mutate } = useSWR("/chats/", fetcher,
+    {
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      refreshInterval: 2000,
+      onError: (error) => {
+        console.error("Error fetching messages:", error);
+      }
+    }
+  );
   const chats = data as ChatResponse;
 
   useEffect(() => {
