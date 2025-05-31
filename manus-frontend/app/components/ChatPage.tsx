@@ -106,12 +106,22 @@ const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
             if (isAssistant && isAnalyseCompleted) {
                 let docName = '';
                 try {
-                    const parsed = typeof msg.content === 'string'
-                        ? JSON.parse(msg.content.replace(/'/g, '"'))
-                        : msg.content;
-                    docName = parsed?.document_name || "document";
+                    if (typeof msg.content === "string") {
+                        let raw = msg.content;
+
+                        // Escape backslashes that aren't part of escape sequences
+                        raw = raw.replace(/\\/g, "\\\\");
+
+                        // Replace single-quoted keys and values with double-quoted ones
+                        raw = raw
+                            .replace(/([{,]\s*)'([^']+?)'\s*:/g, '$1"$2":')  // keys
+                            .replace(/:\s*'([^']*?)'(?=[,}])/g, ': "$1"');   // values
+
+                        const parsed = JSON.parse(raw);
+                        docName = parsed?.document_name || "document";
+                    }
                 } catch (e) {
-                    console.error("Error", e);
+                    console.error("Failed to parse msg.content:", e);
                     docName = "document";
                 }
 

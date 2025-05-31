@@ -14,10 +14,5 @@ export const postData = async (url: string | URL | Request, data: unknown) => {
         body: JSON.stringify(data),
     });
 
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Something went wrong');
-    }
-
     return res.json();
 };

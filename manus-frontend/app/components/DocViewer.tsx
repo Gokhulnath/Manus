@@ -1,5 +1,6 @@
 import { paths } from '@/lib/openapi-types';
 import mammoth from 'mammoth';
+import { parse } from 'path';
 import React, { useEffect, useRef, useState } from 'react'
 
 type MessageResponse =
@@ -10,6 +11,32 @@ type Props = {
     onClose: () => void;
 };
 
+const ParseData = (doc) => {
+    let parsed: any;
+    try {
+        if (typeof doc?.content === "string") {
+            let raw = doc.content;
+
+            // Escape lone backslashes
+            raw = raw.replace(/\\/g, '\\\\');
+
+            // Replace single-quoted keys with double-quoted keys
+            raw = raw.replace(/([{,]\s*)'([^']+?)'\s*:/g, '$1"$2":');
+
+            // Replace single-quoted string values with double-quoted ones
+            raw = raw.replace(/:\s*'([^']*?)'(?=[,}])/g, ': "$1"');
+
+            parsed = JSON.parse(raw);
+        } else {
+            parsed = doc?.content;
+        }
+    } catch (e) {
+        console.error("Failed to parse doc.content:", e);
+        parsed = {}; // or a safe fallback
+    }
+    return parsed;
+}
+
 const DocViewer = ({ doc, onClose }: Props) => {
     const [docText, setDocText] = useState<string | null>(null);
     const [renderKey, setRenderKey] = useState<number>(0);
@@ -17,9 +44,7 @@ const DocViewer = ({ doc, onClose }: Props) => {
     const [documentName, setDocumentName] = useState<string | null>(null);
 
     useEffect(() => {
-        const parsed = typeof doc?.content === "string"
-            ? JSON.parse(doc.content.replace(/'/g, '"'))
-            : doc?.content;
+        const parsed = ParseData(doc);
 
         setDocumentName(parsed?.document_name || null);
         const filepath = '/data-room/' + parsed?.document_name;
@@ -55,9 +80,8 @@ const DocViewer = ({ doc, onClose }: Props) => {
         }
     }, [renderKey]);
 
-    const parsed = typeof doc?.content === "string"
-        ? JSON.parse(doc.content.replace(/'/g, '"'))
-        : doc?.content;
+    const parsed = ParseData(doc);
+
 
     const start = parsed?.start_char_index ?? 0;
     const end = parsed?.end_char_index ?? 0;
