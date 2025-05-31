@@ -1,14 +1,15 @@
 "use client";
-import { useQuery } from "@/lib/api";
 import type { paths } from "@/lib/openapi-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import useSWR from "swr";
+import { fetcher } from "@/lib/api";
 
 type ChatResponse =
   paths["/chats/"]["get"]["responses"]["200"]["content"]["application/json"];
 
 const ChatHistory = () => {
-  const { data, error, isLoading } = useQuery("/chats/");
+  const { data, error, isLoading } = useSWR("/chats/", fetcher);
   const chats = data as ChatResponse;
 
   if (error) return <p>Error: {error.message}</p>;

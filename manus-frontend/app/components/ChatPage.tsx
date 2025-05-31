@@ -1,20 +1,29 @@
 "use client";
-import { useQuery } from "@/lib/api";
+import { fetcher, postData } from "@/lib/api";
 import type { paths } from "@/lib/openapi-types";
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import useSWR from "swr";
 
 type MessageResponse =
     paths["/messages/chat/{chat_id}"]["get"]["responses"]["200"]["content"]["application/json"];
+
+type MessageCreate = paths["/messages/"]["post"]["requestBody"]["content"]["application/json"];
 
 const ChatPage = ({ chat_id = "f6dadbb4-ac52-48e1-973d-f8f6c6b1043b" }: { chat_id?: string }) => {
     const [messages, setMessages] = useState<MessageResponse>([]);
     const chatRef = useRef<HTMLDivElement>(null);
 
-    const { data, isLoading } = useQuery("/messages/chat/{chat_id}", {
-        params: {
-            path: { chat_id },
-        },
-    });
+    const { data, isLoading, mutate } = useSWR(`/messages/chat/${chat_id}`, fetcher,
+        {
+            revalidateOnFocus: true,
+            revalidateOnReconnect: true,
+            refreshInterval: 5000,
+            onError: (error) => {
+                console.error("Error fetching messages:", error);
+            }
+        }
+    );
 
     useEffect(() => {
         if (data) {
@@ -28,8 +37,24 @@ const ChatPage = ({ chat_id = "f6dadbb4-ac52-48e1-973d-f8f6c6b1043b" }: { chat_i
         }
     }, [messages]);
 
-    const handleSendMessage = (text: string) => {
-        console.log("Sending message:", text);
+    const handleSendMessage = async (text: string) => {
+        const newMessage: MessageCreate = {
+            chat_id,
+            content: text,
+            role: "user",
+            task: "chat",
+            status: "pending"
+        };
+        await postData("/messages/", newMessage)
+            .then((response) => {
+                setMessages((prev) => [...prev, response]);
+                mutate();
+            }
+            )
+            .catch((error) => {
+                console.error("Error sending message:", error);
+            }
+            );
     };
 
     return (
@@ -82,12 +107,16 @@ const ChatPage = ({ chat_id = "f6dadbb4-ac52-48e1-973d-f8f6c6b1043b" }: { chat_i
                         {messages.map((msg, idx) => (
                             <div
                                 key={idx}
-                                className={`p-4 rounded-xl max-w-[80%] border text-sm ${msg.role === "user"
-                                        ? "bg-blue-50 border-blue-200 self-end text-right"
-                                        : "bg-gray-100 border-gray-200 self-start text-left"
+                                className={`p-4 rounded-xl max-w-[80%] border text-sm text-left ${msg.role === "user"
+                                    ? "bg-blue-50 border-blue-200 self-end"
+                                    : "bg-gray-100 border-gray-200 self-start"
                                     }`}
                             >
-                                {msg.content}
+                                {msg.role === "assistant" ? (
+                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                ) : (
+                                    msg.content
+                                )}
                             </div>
                         ))}
                     </div>
