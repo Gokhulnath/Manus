@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from dotenv import load_dotenv
 
@@ -25,7 +24,7 @@ class ChatProcessor:
         if len(messages) == 1:
             preview = messages[0].content
             title = preview[:27] + "..." if len(preview) > 27 else preview
-            asyncio.create_task(self._rename_chat(chat_id, title))
+            self._rename_chat(chat_id, title)
         for message in messages:
             if message.role == MessageRole.USER and message.status == MessageStatus.PENDING:
                 result = await self.processor.answer_question(message = message)

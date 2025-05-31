@@ -1,4 +1,3 @@
-import asyncio
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from agent.chat_processor import ChatProcessor
@@ -17,7 +16,7 @@ async def create_message(
     try:
         result =  await service.create_message(message)
         processor = ChatProcessor()
-        asyncio.create_task(processor.process_chat(chat_id=result.chat_id))
+        processor.process_chat(chat_id=result.chat_id)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
