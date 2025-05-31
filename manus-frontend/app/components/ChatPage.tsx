@@ -233,7 +233,11 @@ const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
                             className="absolute right-2 top-1/2 -translate-y-1/2 bg-white border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition"
                             aria-label="Send"
                         >
-                            <span className="text-sm">↑</span>
+                            {isProcessing ? (
+                                <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <span className="text-sm">↑</span>
+                            )}
                         </button>
                     </div>
                 </div>
