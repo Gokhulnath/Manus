@@ -24,6 +24,6 @@ class ChatProcessor:
                 await self.service.update_message(message.id, MessageUpdate(status=MessageStatus.COMPLETED))
                 await self.service.create_message(MessageCreate(chat_id=message.chat_id,
                                                                 role=MessageRole.ASSISTANT,
-                                                                content=str(result),
+                                                                content=result['answer'],
                                                                 task=MessageTask.SUMMARIZE,
                                                                 status=MessageStatus.COMPLETED))

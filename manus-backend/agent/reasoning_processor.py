@@ -49,7 +49,7 @@ class ReasoningProcessor:
         for i, chunk in enumerate(relevant_chunks):
             char_range = f"characters {chunk['start_char_index']}-{chunk['end_char_index']}"
             context_parts.append(
-                f"Document: {chunk['document_name']} (Chunk {chunk['chunk_index'] + 1}, {char_range})\nContent: {chunk['content']}\n")
+                f"Document: {chunk['document_name']}\nContent: {chunk['content']}\n")
             sources.append({
                 'document_name': chunk['document_name'],
                 'document_type': chunk['document_type'],

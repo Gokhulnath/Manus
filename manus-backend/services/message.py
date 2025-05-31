@@ -41,7 +41,7 @@ class MessageService:
 
     async def get_messages_by_chat_id(self, chat_id: str, skip: int = 0, limit: int = 100) -> List[MessageResponse]:
         """Get all messages by chat id with pagination."""
-        result = self.db.table(self.table_name).select("*").eq("chat_id", chat_id).range(skip, skip + limit - 1).order("created_at", desc=True).execute()
+        result = self.db.table(self.table_name).select("*").eq("chat_id", chat_id).range(skip, skip + limit - 1).order("created_at", desc=False).execute()
 
         return [MessageResponse(**msg) for msg in result.data]
 
