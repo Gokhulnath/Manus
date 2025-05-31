@@ -97,22 +97,57 @@ const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
 
 
     const renderMessages = () => {
-        return messages.map((msg, idx) => (
-            <div
-                key={idx}
-                className={`p-4 rounded-xl max-w-[80%] border text-sm text-left ${msg.role === "user"
-                    ? "bg-blue-50 border-blue-200 self-end"
-                    : "bg-gray-100 border-gray-200 self-start"
-                    }`}
-            >
-                {msg.role === "assistant" ? (
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                ) : (
-                    msg.content
-                )}
-            </div>
-        ));
+        return messages.map((msg, idx) => {
+            const isAssistant = msg.role === "assistant";
+            const isAnalyseCompleted = msg.task === "analyse" && msg.status === "completed";
+
+            let contentToRender;
+
+            if (isAssistant && isAnalyseCompleted) {
+                let docName = '';
+                try {
+                    const parsed = typeof msg.content === 'string'
+                        ? JSON.parse(msg.content.replace(/'/g, '"'))
+                        : msg.content;
+                    docName = parsed?.document_name || "document";
+                } catch (e) {
+                    console.error("Error", e);
+                    docName = "document";
+                }
+
+                contentToRender = (
+                    <div
+                        className="italic text-gray-700 rounded flex items-center gap-2 cursor-pointer transition-colors"
+                        onClick={() => {
+                            if (onAnalyseMessage) {
+                                onAnalyseMessage(msg);
+                            }
+                        }}
+                    >
+                        <span>Analysed <strong>{docName}</strong></span>
+                        <span className="text-gray-700 text-sm">➔</span>
+                    </div>
+                );
+            } else {
+                contentToRender = isAssistant
+                    ? <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    : msg.content;
+            }
+
+            return (
+                <div
+                    key={idx}
+                    className={`p-4 rounded-xl max-w-[80%] border text-sm text-left ${isAssistant
+                        ? "bg-gray-100 border-gray-200 self-start"
+                        : "bg-blue-50 border-blue-200 self-end"
+                        }`}
+                >
+                    {contentToRender}
+                </div>
+            );
+        });
     };
+
 
     return (
         <main className="flex flex-col h-full w-full max-h-screen">

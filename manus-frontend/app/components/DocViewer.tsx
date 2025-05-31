@@ -85,7 +85,7 @@ const DocViewer = ({ doc, onClose }: Props) => {
             <h2 className="text-lg font-semibold mb-4">Doc Viewer</h2>
             {documentName && (
                 <div className="text-sm text-gray-600 mb-2">
-                    Document: {documentName}
+                    Document: <b>{documentName}</b>
                 </div>
             )}
 
