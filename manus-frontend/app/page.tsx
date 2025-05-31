@@ -1,23 +1,19 @@
-"use client";
-import { useQuery } from "@/lib/api";
-import type { paths } from "@/lib/openapi-types";
-
-type ChatResponse =
-  paths["/chats/"]["get"]["responses"]["200"]["content"]["application/json"];
+import ChatHistory from "./components/ChatHistory";
 
 export default function Home() {
-  const { data, error, isLoading } = useQuery("/chats/");
-  const chats = data as ChatResponse;
-
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        {chats?.map((item) => (
-          <li key={item.id}>{item.title}</li>
-        ))}
+    <div className="h-screen w-screen grid grid-cols-[15vw_1fr_auto] grid-rows-1 items-stretch p-2 gap-2 font-[family-name:var(--font-geist-sans)] ">
+      <ChatHistory />
+
+      {/* Column 2 (flex-grow) */}
+      <main className="flex flex-col gap-[32px] col-start-2 items-center sm:items-start h-full p-5">
+        hello world
       </main>
+
+      {/* Column 3 (optional, fixed 200px) */}
+      <div className="min-w-[33vw] hidden lg:block h-full bg-white rounded-2xl p-5 border border-gray-200">
+        Optional right panel
+      </div>
     </div>
   );
 }
