@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { paths } from '@/lib/openapi-types';
 import mammoth from 'mammoth';
-import { parse } from 'path';
 import React, { useEffect, useRef, useState } from 'react'
 
 type MessageResponse =
@@ -11,7 +11,7 @@ type Props = {
     onClose: () => void;
 };
 
-const ParseData = (doc) => {
+const ParseData = (doc: any) => {
     let parsed: any;
     try {
         if (typeof doc?.content === "string") {
