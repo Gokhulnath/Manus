@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./manus-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./manus-backend:/app
+    environment:
+      - SUPABASE_URL=
+      - SUPABASE_KEY=
+      - OPENAI_API_KEY=
+      - OPENAI_MODEL=gpt-3.5-turbo
+      - EMBEDDING_MODEL=text-embedding-3-small
+      - EMBEDDING_DIMENSIONS=1536
+      - PINECONE_API_KEY=
+      - PINECONE_CLOUD=aws
+      - PINECONE_REGION=us-east-1
+      - PINECONE_INDEX_NAME=manus-clone
+      - MAX_TOKENS_PER_CHUNK=512
+      - OVERLAPPING_TOKEN=50
+      - DATA_ROOM_PATH='./data-room'
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: ./manus-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./manus-frontend:/app
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    command: sh -c "npm run build && npm start"

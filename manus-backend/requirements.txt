@@ -25,7 +25,7 @@ jiter==0.10.0
 lxml==5.4.0
 multidict==6.4.4
 openai==1.82.1
-packaging==25.0
+packaging==24.2
 pinecone==7.0.2
 pinecone-plugin-assistant==1.6.1
 pinecone-plugin-interface==0.0.7

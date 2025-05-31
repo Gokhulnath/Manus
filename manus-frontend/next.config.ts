@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    // Disable lightningcss to avoid native binary issue
+    optimizeCss: false,
+  },
 };
 
 export default nextConfig;

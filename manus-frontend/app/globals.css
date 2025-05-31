@@ -2,25 +2,25 @@
 /* Geist Sans */
 @font-face {
   font-family: "Geist";
-  src: url("/fonts/Geist/Geist-Regular.woff2") format("woff2");
+  src: url("/fonts/Geist/webfonts/Geist-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "Geist";
-  src: url("/fonts/Geist/Geist-Medium.woff2") format("woff2");
+  src: url("/fonts/Geist/webfonts/Geist-Medium.woff2") format("woff2");
   font-weight: 500;
   font-display: swap;
 }
 @font-face {
   font-family: "Geist";
-  src: url("/fonts/Geist/Geist-SemiBold.woff2") format("woff2");
+  src: url("/fonts/Geist/webfonts/Geist-SemiBold.woff2") format("woff2");
   font-weight: 600;
   font-display: swap;
 }
 @font-face {
   font-family: "Geist";
-  src: url("/fonts/Geist/Geist-Bold.woff2") format("woff2");
+  src: url("/fonts/Geist/webfonts/Geist-Bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
@@ -28,7 +28,7 @@
 /* Geist Mono */
 @font-face {
   font-family: "Geist Mono";
-  src: url("/fonts/GeistMono/GeistMono-Regular.woff2") format("woff2");
+  src: url("/fonts/GeistMono/webfonts/GeistMono-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
