@@ -32,7 +32,7 @@ class AnalysingProcessor:
         )
         return response.data[0].embedding
 
-    async def search_similar_chunks(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    async def search_similar_chunks(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
         """Search for similar chunks using vector similarity"""
         # Get query embedding
         query_embedding = self._get_embedding(query)

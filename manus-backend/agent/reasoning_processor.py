@@ -25,7 +25,7 @@ class ReasoningProcessor:
         self.embedding_model = settings.EMBEDDING_MODEL
         self.embedding_dimensions = settings.EMBEDDING_DIMENSIONS
         self.pinecone_index = self.pc.Index(self.index_name)
-        self.top_k = 5
+        self.top_k = 10
         self.openai_model = settings.OPENAI_MODEL
 
         self.chunk_service = ChunkService(get_supabase_client())
@@ -83,16 +83,24 @@ class ReasoningProcessor:
         context = "\n---\n".join(context_parts)
 
         # Create prompt for the LLM
-        prompt = f"""Based on the following context from uploaded documents, please answer the question. 
-        If the answer cannot be found in the context, please say so.
+        prompt = f"""You are provided with legal context extracted from one or more uploaded documents. 
+        Your task is to answer the following question clearly and precisely, using only the information found in the context.
+
+        Instructions:
+        - If the answer is available in the context, provide a direct, well-reasoned answer.
+        - You must cite **all the documents** provided in the context, regardless of whether they were directly used.
+        - Also cite any referenced law names, acts, or section numbers mentioned in the answer.
+        - Do **not** include any information that is not present in the context.
+        - If the answer cannot be found in the context, respond with: "The answer is not available in the provided context."
+
 
         Context:
         {context}
         
         Question: {question}
         
-        Please provide a comprehensive answer based on the context above. When referencing information, 
-        mention which document it comes from, along with the law or law number or acts if present from the original document."""
+        Please provide a comprehensive answer based on the context above. In the end mention which document it comes from, 
+        along with the law or law number or acts if present from the original document."""
 
         # Get answer from OpenAI
         response = self.openai_client.chat.completions.create(
