@@ -11,3 +11,4 @@
 /manus-backend/services/__pycache__
 /.idea
 /Data Room 2
+*.pyc
