@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "gene-types": "npx openapi-typescript http://localhost:8000/openapi.json -o lib/openapi-types.ts",
+    "generate-types": "npx openapi-typescript http://localhost:8000/openapi.json -o lib/openapi-types.ts",
+    "copy-data-room": "rm -rf ./public/data-room && cp -R \"../Data Room\" ./public/data-room",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -12,6 +13,7 @@
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "mammoth": "^1.9.1",
     "next": "15.3.3",
     "openapi-fetch": "^0.14.0",
     "react": "^19.0.0",

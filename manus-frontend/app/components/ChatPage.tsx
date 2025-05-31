@@ -7,6 +7,7 @@ import useSWR from "swr";
 
 type Props = {
     chat_id: string;
+    onAnalyseMessage?: (message: MessageResponse[number]) => Promise<void>;
 };
 
 type MessageResponse =
@@ -14,20 +15,12 @@ type MessageResponse =
 
 type MessageCreate = paths["/messages/"]["post"]["requestBody"]["content"]["application/json"];
 
-const ChatPage = ({ chat_id }: Props) => {
+const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
     const [messages, setMessages] = useState<MessageResponse>([]);
     const chatRef = useRef<HTMLDivElement>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const { data, isLoading, mutate } = useSWR(`/messages/chat/${chat_id}`, fetcher,
-        {
-            revalidateOnFocus: true,
-            revalidateOnReconnect: true,
-            refreshInterval: 5000,
-            onError: (error) => {
-                console.error("Error fetching messages:", error);
-            }
-        }
-    );
+    const { data, isLoading, mutate } = useSWR(`/messages/chat/${chat_id}`, fetcher);
 
     useEffect(() => {
         if (data) {
@@ -43,7 +36,7 @@ const ChatPage = ({ chat_id }: Props) => {
 
     const handleSendMessage = async (text: string) => {
         const newMessage: MessageCreate = {
-            chat_id: chat_id,
+            chat_id,
             content: text,
             role: "user",
             task: "chat",
@@ -51,14 +44,75 @@ const ChatPage = ({ chat_id }: Props) => {
         };
 
         try {
+            setIsProcessing(true);
+
+            // Send the user's message
             const response = await postData("/messages/", newMessage);
             setMessages((prev) => [...prev, response]);
-            mutate();
+
+            const waitForMessages = async () => {
+                const res = await fetcher(`/messages/chat/${chat_id}`) as MessageResponse;
+
+                // Find the last user message index
+                const lastUserIndex = res
+                    .map((m) => m.role)
+                    .lastIndexOf("user");
+
+                // Only messages after the last user message are relevant
+                const newAssistantMessages = res.slice(lastUserIndex + 1);
+
+                const analyseMessages = newAssistantMessages.filter(
+                    (msg) => msg.task === "analyse" && msg.status === "completed"
+                );
+
+                const summarizeMessage = newAssistantMessages.find(
+                    (msg) => msg.task === "summarize" && msg.status === "completed"
+                );
+
+                // Process analyse messages one-by-one
+                for (const msg of analyseMessages) {
+                    setMessages((prev) => [...prev, msg]);
+                    if (onAnalyseMessage) {
+                        await onAnalyseMessage(msg);
+                    }
+                }
+
+                // Process summarize message only after all analyse messages
+                if (summarizeMessage) {
+                    setMessages((prev) => [...prev, summarizeMessage]);
+                    setIsProcessing(false);
+                    mutate();
+                } else {
+                    // Retry after short delay
+                    setTimeout(waitForMessages, 500);
+                }
+            };
+            waitForMessages();
         } catch (error) {
             console.error("Error sending message:", error);
+            setIsProcessing(false);
         }
     };
 
+
+
+    const renderMessages = () => {
+        return messages.map((msg, idx) => (
+            <div
+                key={idx}
+                className={`p-4 rounded-xl max-w-[80%] border text-sm text-left ${msg.role === "user"
+                    ? "bg-blue-50 border-blue-200 self-end"
+                    : "bg-gray-100 border-gray-200 self-start"
+                    }`}
+            >
+                {msg.role === "assistant" ? (
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                ) : (
+                    msg.content
+                )}
+            </div>
+        ));
+    };
 
     return (
         <main className="flex flex-col h-full w-full max-h-screen">
@@ -78,6 +132,7 @@ const ChatPage = ({ chat_id }: Props) => {
                         <h1 className="text-2xl font-semibold mb-4">What can I help with?</h1>
                         <div className="relative max-w-[600px] mx-auto">
                             <input
+                                disabled={isProcessing}
                                 type="text"
                                 placeholder="Ask anything"
                                 className="bg-white border border-gray-200 px-4 py-3 pr-12 rounded-2xl w-full"
@@ -91,6 +146,7 @@ const ChatPage = ({ chat_id }: Props) => {
                                 id="chat-input"
                             />
                             <button
+                                disabled={isProcessing}
                                 onClick={() => {
                                     const input = document.getElementById("chat-input") as HTMLInputElement;
                                     if (input?.value.trim()) {
@@ -107,21 +163,7 @@ const ChatPage = ({ chat_id }: Props) => {
                     </div>
                 ) : (
                     <div className="flex flex-col gap-4 pb-2">
-                        {messages.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`p-4 rounded-xl max-w-[80%] border text-sm text-left ${msg.role === "user"
-                                    ? "bg-blue-50 border-blue-200 self-end"
-                                    : "bg-gray-100 border-gray-200 self-start"
-                                    }`}
-                            >
-                                {msg.role === "assistant" ? (
-                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                                ) : (
-                                    msg.content
-                                )}
-                            </div>
-                        ))}
+                        {renderMessages()}
                     </div>
                 )}
             </div>
@@ -131,6 +173,7 @@ const ChatPage = ({ chat_id }: Props) => {
                 <div className="w-full px-4 py-4">
                     <div className="relative max-w-[600px] mx-auto">
                         <input
+                            disabled={isProcessing}
                             type="text"
                             placeholder="Ask anything"
                             className="bg-white border border-gray-200 px-4 py-3 pr-12 rounded-2xl w-full"
@@ -144,6 +187,7 @@ const ChatPage = ({ chat_id }: Props) => {
                             id="chat-input"
                         />
                         <button
+                            disabled={isProcessing}
                             onClick={() => {
                                 const input = document.getElementById("chat-input") as HTMLInputElement;
                                 if (input?.value.trim()) {

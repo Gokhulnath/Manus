@@ -204,7 +204,6 @@ export interface components {
         };
         /** HTTPValidationError */
         HTTPValidationError: {
-            [x: string]: any;
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
