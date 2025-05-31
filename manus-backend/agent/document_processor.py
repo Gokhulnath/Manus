@@ -91,36 +91,104 @@ class DocumentProcessor:
         with open(file_path, 'r', encoding='utf-8') as file:
             return file.read()
 
-    def _chunk_text(self, text: str, max_tokens: int = 512, overlap_tokens: int = 100) -> List[Dict[str, Any]]:
-        """Chunk text into smaller pieces with overlap and track character indices"""
-        tokens = self.tokenizer.encode(text)
+    def _chunk_text(self, text: str, max_tokens: int = 512, overlap_tokens: int = 50) -> List[Dict[str, Any]]:
+        """Chunk text with consideration for headings, short and long paragraphs."""
+        paragraphs = text.strip().split('\n')
+        merged_paragraphs = []
+
+        # Merge headings with the following paragraph
+        i = 0
+        while i < len(paragraphs):
+            current = paragraphs[i].strip()
+            if i + 1 < len(paragraphs):
+                next_para = paragraphs[i + 1].strip()
+                if len(current.split()) < 10 and next_para:
+                    merged_paragraphs.append(f"{current}\n{next_para}")
+                    i += 2
+                    continue
+            if current:
+                merged_paragraphs.append(current)
+            i += 1
+
+        # Tokenize and chunk
         chunks = []
+        current_chunk_tokens = []
+        current_chunk_text = ""
+        current_start_char = 0
 
-        start = 0
-        while start < len(tokens):
-            end = min(start + max_tokens, len(tokens))
-            chunk_tokens = tokens[start:end]
-            chunk_text = self.tokenizer.decode(chunk_tokens)
+        for para in merged_paragraphs:
+            para_tokens = self.tokenizer.encode(para)
+            para_token_count = len(para_tokens)
 
-            chunk_text = chunk_text.strip()
-            if chunk_text:
-                start_char = text.find(chunk_text)
-                if start_char == -1:
-                    chars_per_token = len(text) / len(tokens) if len(tokens) > 0 else 1
-                    start_char = int(start * chars_per_token)
+            if para_token_count > max_tokens:
+                # If paragraph is too long, chunk it
+                start = 0
+                while start < para_token_count:
+                    end = min(start + max_tokens, para_token_count)
+                    sub_tokens = para_tokens[start:end]
+                    sub_text = self.tokenizer.decode(sub_tokens).strip()
 
-                end_char = start_char + len(chunk_text)
+                    if sub_text:
+                        sub_start_char = text.find(sub_text, current_start_char)
+                        if sub_start_char == -1:
+                            chars_per_token = len(text) / len(self.tokenizer.encode(text))
+                            sub_start_char = int(start * chars_per_token)
 
-                chunks.append({
-                    'text': chunk_text,
-                    'start_char': start_char,
-                    'end_char': end_char,
-                    'token_count': len(chunk_tokens)
-                })
+                        sub_end_char = sub_start_char + len(sub_text)
+                        chunks.append({
+                            'text': sub_text,
+                            'start_char': sub_start_char,
+                            'end_char': sub_end_char,
+                            'token_count': len(sub_tokens)
+                        })
+                        current_start_char = sub_end_char
 
-            if end == len(tokens):
-                break
-            start = end - overlap_tokens
+                    if end == para_token_count:
+                        break
+                    start = end - overlap_tokens
+
+            elif para_token_count < 30:
+                # If paragraph is very short, accumulate it with the next
+                current_chunk_tokens += para_tokens
+                current_chunk_text += '\n' + para
+            else:
+                # Commit the current chunk if it would exceed max_tokens
+                if len(current_chunk_tokens) + para_token_count > max_tokens:
+                    if current_chunk_tokens:
+                        chunk_text = self.tokenizer.decode(current_chunk_tokens).strip()
+                        start_char = text.find(chunk_text, current_start_char)
+                        if start_char == -1:
+                            chars_per_token = len(text) / len(self.tokenizer.encode(text))
+                            start_char = int(current_start_char)
+
+                        end_char = start_char + len(chunk_text)
+                        chunks.append({
+                            'text': chunk_text,
+                            'start_char': start_char,
+                            'end_char': end_char,
+                            'token_count': len(current_chunk_tokens)
+                        })
+                        current_start_char = end_char
+                    current_chunk_tokens = para_tokens
+                    current_chunk_text = para
+                else:
+                    current_chunk_tokens += para_tokens
+                    current_chunk_text += '\n' + para
+
+        # Append any remaining chunk
+        if current_chunk_tokens:
+            chunk_text = self.tokenizer.decode(current_chunk_tokens).strip()
+            start_char = text.find(chunk_text, current_start_char)
+            if start_char == -1:
+                chars_per_token = len(text) / len(self.tokenizer.encode(text))
+                start_char = int(current_start_char)
+            end_char = start_char + len(chunk_text)
+            chunks.append({
+                'text': chunk_text,
+                'start_char': start_char,
+                'end_char': end_char,
+                'token_count': len(current_chunk_tokens)
+            })
 
         return chunks
 
