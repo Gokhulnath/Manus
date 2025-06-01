@@ -45,10 +45,17 @@ const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
 
         try {
             setIsProcessing(true);
+            const userMessage = {
+                ...newMessage,
+                id: `temp-${Date.now()}`,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                chunk_id: null,
+            };
+            setMessages((prev) => [...prev, userMessage]);
 
             // Send the user's message
-            const response = await postData("/messages/", newMessage);
-            setMessages((prev) => [...prev, response]);
+            await postData("/messages/", newMessage);
 
             const waitForMessages = async () => {
                 const res = await fetcher(`/messages/chat/${chat_id}`) as MessageResponse;
