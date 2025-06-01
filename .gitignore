@@ -14,3 +14,5 @@
 *.pyc
 /manus-frontend/public/data-room
 /manus-backend/data-room
+
+.DS_Store
