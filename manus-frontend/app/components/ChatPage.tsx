@@ -45,6 +45,7 @@ const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
 
         try {
             setIsProcessing(true);
+            // Create an optimistic user message with required fields
             const userMessage = {
                 ...newMessage,
                 id: `temp-${Date.now()}`,
@@ -53,7 +54,6 @@ const ChatPage = ({ chat_id, onAnalyseMessage }: Props) => {
                 chunk_id: null,
             };
             setMessages((prev) => [...prev, userMessage]);
-
             // Send the user's message
             await postData("/messages/", newMessage);
 
