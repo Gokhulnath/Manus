@@ -37,29 +37,6 @@ A production-ready, Manus-style Retrieval-Augmented Generation (RAG) system that
 | Containerization | Docker (⚠️ macOS issues)         |
 
 ---
-
-## 📁 Data Room Behavior
-
-- Place your files inside a folder named `Data Room` at the project root.
-- Run:
-
-```bash
-# NPM Copy Data Room Guide
-
-## Running the Command
-
-```bash
-npm run copy-data-room
-```
-
-# NPM Copy Data Room Guide
-
-## Running the Command
-
-```bash
-npm run copy-data-room
-```
-
 ## What the App Does
 
 The application performs the following operations:
@@ -101,10 +78,25 @@ DATA_ROOM_PATH='../Data Room'
 
 ## Getting Started
 
+### 📁 Data Room Behavior
+
+1. Place your data files inside a folder named `Data Room` at the project root.
+2. Make sure the script is executable:
+
+```bash
+chmod +x copy_data_room.sh
+./copy_data_room.sh
+```
+This ensures the user knows how to make the script runnable (`chmod +x`) and then execute it.
+
+### Supabase Setup
+
+Once the supabase database setup is done, run the `manus-backend/script.sql` to create the tables.
+
 ### Backend (FastAPI)
 
 ```bash
-cd backend
+cd manus-backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -114,7 +106,7 @@ uvicorn main:app --reload
 ### Frontend (Next.js)
 
 ```bash
-cd frontend
+cd manus-frontend
 npm install
 npm run dev
 ```
@@ -129,7 +121,6 @@ Docker is initialized but **not currently working on macOS** due to a known issu
 npm run dev                # Start Next.js dev server
 npm run build              # Build for production
 npm run start              # Start production server
-npm run copy-data-room     # Sync Data Room files
 npm run generate-types     # Generate OpenAPI TS types
 ```
 
